@@ -12,7 +12,8 @@ import {
   View,
   Image,
   TouchableOpacity,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Modal
 } from 'react-native';
 
 import StyledText from './src/components/styled-text'
@@ -28,7 +29,6 @@ export default class ScotiabankScrumPoker extends Component {
 
     this.renderCards = this.renderCards.bind(this);
     this.selectCard = this.selectCard.bind(this);
-    this.renderCardsContainer = this.renderCardsContainer.bind(this);
     this.reset = this.reset.bind(this);
     this.showValue = this.showValue.bind(this);
 
@@ -39,6 +39,7 @@ export default class ScotiabankScrumPoker extends Component {
   }
 
   render() {
+    const {isShowValue, selectedIndex} = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.logoContainer}>
@@ -46,34 +47,45 @@ export default class ScotiabankScrumPoker extends Component {
                  style={styles.logo}
                  resizeMode={Image.resizeMode.contain}/>
         </View>
-        {this.renderCardsContainer()}
+
+        {this.renderCards()}
+        <Modal animationType={"slide"} transparent={true} visible={!isShowValue && selectedIndex !== null}>
+          <LargeCard onPress={this.showValue} style={{marginTop: 125}}>
+            <Image source={require('./src/assets/images/df-logo.png')}
+                   style={styles.touchContainerBackLogo}
+                   resizeMode={Image.resizeMode.contain}/>
+          </LargeCard>
+        </Modal>
+        <Modal animationType={"slide"} transparent={true} visible={isShowValue && selectedIndex !== null}>
+          <LargeCard onPress={this.reset} index={this.state.selectedIndex}
+                     style={{marginTop: 125}}
+                     cardStyle={{backgroundColor: getColourFromIndex(this.state.selectedIndex)}}>
+            <StyledText style={styles.displayValueText}>
+              {FIB[this.state.selectedIndex]}
+            </StyledText>
+          </LargeCard>
+        </Modal>
       </View>
     );
   }
 
-  renderCardsContainer() {
-    if (this.state.isShowValue && this.state.selectedIndex !== null) {
-      return <LargeCard onPress={this.reset} index={this.state.selectedIndex}
-                        cardStyle={{backgroundColor: getColourFromIndex(this.state.selectedIndex)}}>
-        <StyledText style={styles.displayValueText}>
-          {FIB[this.state.selectedIndex]}
-        </StyledText>
-      </LargeCard>;
-    } else if (this.state.selectedIndex === null) {
-      return <View style={styles.cardsContainer}>
-        {this.renderCards()}
-      </View>;
+  renderCards() {
+    const tempArray = [];
+    const chunkSize = 3;
+    for (let i = 0, j = FIB.length; i < j; i += chunkSize) {
+      tempArray.push(FIB.slice(i, i + chunkSize));
     }
 
-    return <LargeCard onPress={this.showValue}>
-      <Image source={require('./src/assets/images/df-logo.png')}
-             style={styles.touchContainerBackLogo}
-             resizeMode={Image.resizeMode.contain}/>
-    </LargeCard>;
-  }
-
-  renderCards() {
-    return FIB.map((num, i) => <Card key={num} onPress={this.selectCard} index={i} value={num}/>)
+    return <View style={styles.cardsContainer}>
+      {
+        tempArray.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.cardsRow}>
+            {row.map((num, i) => <Card key={num} onPress={this.selectCard} index={rowIndex * chunkSize + i}
+                                       value={num}/>)}
+          </View>
+        ))
+      }
+    </View>;
   }
 
   selectCard({index}) {
@@ -100,16 +112,19 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     marginTop: 25
   },
-  cardsContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    alignItems: 'center'
-  },
   logoContainer: {
     alignItems: 'center',
-    marginVertical: 20
+    height: 75,
+    justifyContent: 'center'
+  },
+  cardsContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-around'
+  },
+  cardsRow: {
+    flexDirection: 'row',
+    flex: 1
   },
   logo: {
     width: 200,
@@ -119,7 +134,7 @@ const styles = StyleSheet.create({
     width: 300
   },
   displayValueText: {
-    fontSize: 180,
+    fontSize: 160,
     fontWeight: '400',
     color: '#FFFFFF'
   }

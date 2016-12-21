@@ -18,16 +18,14 @@ const Card = ({value, onPress, index}) => (
 
 const styles = StyleSheet.create({
   container: {
-    width: 100,
-    height: 100,
     justifyContent: 'center',
-    marginVertical: 10,
-    marginHorizontal: 10,
+    margin: 10,
     borderRadius: 10,
+    flex: 1
   },
   value: {
     textAlign: 'center',
-    fontSize: 36,
+    fontSize: 42,
     fontWeight: '600',
     color: '#FFFFFF'
   }
